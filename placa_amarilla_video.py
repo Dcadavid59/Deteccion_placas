@@ -12,13 +12,25 @@ import pytesseract
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-def detectarPlaca(img):
+def detectarPlaca(imgresize):
+    alto,ancho,_=imgresize.shape
+    xL=int(ancho/9)
+    xR=xL*8
+    yA=int(alto/2)-50
+    yB=yA*2
+    
+    # Dibujo del rectangulo donde se extraera las placas
+    cv2.rectangle(imgresize,(xR,yA),(xL,yB),(0,255,0),2)
+    
+    # Recorte de zona de interes
+    recorte=imgresize[yA:yB,xL:xR]
+    
     # Elegimos el umbral de verde en HSV
     umbral_bajo = np.array([10,100,50], np.uint8)
     umbral_alto = np.array([40,255,255], np.uint8)
 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    recorte = cv2.cvtColor(recorte, cv2.COLOR_BGR2RGB)
+    img_hsv = cv2.cvtColor(recorte, cv2.COLOR_RGB2HSV)
 
     # hacemos la mask y filtramos en la original
     mask = cv2.inRange(img_hsv, umbral_bajo, umbral_alto)
@@ -53,8 +65,6 @@ def detectarPlaca(img):
  
    
     # correccion perspectiva
-    
-    
     vertices=cv2.goodFeaturesToTrack(maskPlaca,4,0.01,10)
     x=vertices[:,0,0]
     y=vertices[:,0,1]
@@ -79,30 +89,36 @@ def detectarPlaca(img):
     
     h,_=cv2.findHomography(vertices,verticesN)
     
-    placa=cv2.warpPerspective(img,h,(np.max(verticesN[:,0]),(np.max(verticesN[:,1]))))
+    placa=cv2.warpPerspective(imgresize,h,(np.max(verticesN[:,0]),(np.max(verticesN[:,1]))))
 
+    config_placa = '--psm 7 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
+    text = pytesseract.image_to_string(placa,config=config_placa)
 
-    text = pytesseract.image_to_string(placa,config='--psm 11')
-
+    if len(text) < 7:
+        text = ''
+              
     return text
 
 
 #img=cv2.imread("car6.jpg")
 
-cap=cv2.VideoCapture('video_moto.mp4')
+cap=cv2.VideoCapture('video_moto2.mp4')
 
 while (cap.isOpened()):
     
     ret,frame=cap.read()
     
     if ret==True:
-        imgresize=cv2.resize(frame,(1200,900))
+        imgresize=cv2.resize(frame,(800,600))
         text=detectarPlaca(imgresize)
         print(text)
         cv2.putText(imgresize,"La placa es: "+ text,(10,300),cv2.FONT_HERSHEY_DUPLEX,0.8,(0,255,255),1)
         cv2.imshow("placa", imgresize)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-cv2.waitKey(0)
+    else:
+        break
+cap.release()
 cv2.destroyAllWindows()
+

@@ -6,7 +6,7 @@ import time
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-cap=cv2.VideoCapture('video.mp4')
+cap=cv2.VideoCapture('video_moto2.mp4')
 
 cont=0
 
@@ -41,13 +41,13 @@ while (cap.isOpened()):
             epsilon = 0.01*cv2.arcLength(i,True)
             approx = cv2.approxPolyDP(i,epsilon,True)
     
-            if (len(approx)==4) and (area > 4 and area < 10):
+            if (len(approx)==4) and (area > 6000):
                 print(f'aprox : {len(approx)}')
                 print(f'area={area}')
                 cv2.drawContours(imgresize,[i],0,(119, 255, 51),2)
                 aspect_ratio = float(w)/h
                 print(f'aspect ratio: {aspect_ratio}')
-                if aspect_ratio>1 and aspect_ratio<11:
+                if aspect_ratio>1:
                     
                     placa = gray[y:y+h,x:x+w]
             
@@ -58,7 +58,7 @@ while (cap.isOpened()):
                 cv2.rectangle(imgresize,(x,y),(x+w,y+h),(119, 255, 51),3)
                 cv2.putText(imgresize,text,(x-40,y-20),1,2.2,(0,255,0),2,cv2.LINE_AA)
 
-        cv2.imshow('video',imgresize)
+        cv2.imshow('video_moto2',imgresize)
         
         
         

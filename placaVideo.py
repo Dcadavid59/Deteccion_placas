@@ -11,8 +11,11 @@ import numpy as np
 from scipy import ndimage
 from deteccionPlaca import detectarPlaca
 from reconocimientoCaracteres import clasificadorCaracteres, get_hog, escalar 
+import pytesseract
 
-cap = cv2.VideoCapture('video12.mp4')
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+cap = cv2.VideoCapture('video_moto.mp4')
 hog=get_hog()
 knn,SVM=clasificadorCaracteres()
 while(cap.isOpened()):
@@ -20,13 +23,33 @@ while(cap.isOpened()):
     if not ret:
         break
     #instrucciones
+    """
     frame = cv2.resize(frame,(800,500),fx=0,fy=0,interpolation = cv2.INTER_CUBIC)
     frame=cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
     
     placa=detectarPlaca(frame)
-
-    I=cv2.cvtColor(placa,cv2.COLOR_BGR2GRAY)
+    """
+    imgresize=cv2.resize(frame,(1000,900))
     
+    # #rectangulo donde mostrara la placa
+    al,an,_=imgresize.shape
+    
+    x1=int(an/3) #se toma 1/3 de la imagen
+    x2=int(x1*2) #hasta el inicio de 3/3 de la imagen
+
+    y1=int(al/3)
+    y2=int(y1*2)
+            
+    #zona donde se extraera las placas
+    cv2.rectangle(imgresize,(x1,y1),(x2,y2),(0,255,0),2)
+    
+    #obteniendo recorte de zona de interes
+    
+    frame=imgresize[y1:y2,x1:x2]
+    text=detectarPlaca(imgresize)
+    
+    """
+    I=cv2.cvtColor(placa,cv2.COLOR_BGR2GRAY)
     u,_=cv2.threshold(I,0,255,cv2.THRESH_OTSU)
     
     mascara=np.uint8(255*(I<u))
@@ -52,7 +75,7 @@ while(cap.isOpened()):
         orden.append(x)
         cv2.rectangle(placa2,(x,y),(x+w,y+h),(0,0,255),1)
     caracteresOrdenados = [x for _,x in sorted(zip(orden,caracteres))]
-    
+    """
     
     palabrasKnn=""
     palabrasSVM=""

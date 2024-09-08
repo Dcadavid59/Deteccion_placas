@@ -84,7 +84,7 @@ def detectarPlaca(img):
 
 #img=cv2.imread("car6.jpg")
 
-cap=cv2.VideoCapture('video_moto.mp4')
+cap=cv2.VideoCapture('video.mp4')
 
 while (cap.isOpened()):
     
